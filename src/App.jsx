@@ -1,29 +1,28 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 
-// BACKGROUND
 import bg from "./images/bg.jpg";
-
-// QUESTION IMAGES
-import p1 from "./images/person1.jpg";
-import p2 from "./images/person2.jpg";
-import p3 from "./images/person3.jpg";
-import p4 from "./images/person4.jpg";
-import p5 from "./images/person5.jpg";
-import p6 from "./images/person6.jpg";
-import p7 from "./images/person7.jpg";
-import p8 from "./images/person8.jpg";
-import p9 from "./images/person9.jpg";
+import p1 from "./images/bugra.png";
+import p2 from "./images/burhan.png";
+import p3 from "./images/efe.png";
+import p4 from "./images/ege.png";
+import p5 from "./images/emir.png";
+import p6 from "./images/nil.png";
+import p7 from "./images/gultekin.png";
+import p8 from "./images/safak.png";
+import p9 from "./images/kubilay.png";
+import p10 from "./images/eren.png";
 
 const QUESTIONS = [
-  { id: 1, image: p1, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 0 },
-  { id: 2, image: p2, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 1 },
-  { id: 3, image: p3, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 2 },
-  { id: 4, image: p4, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 3 },
-  { id: 5, image: p5, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 0 },
-  { id: 6, image: p6, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 1 },
-  { id: 7, image: p7, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 2 },
-  { id: 8, image: p8, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 3 },
-  { id: 9, image: p9, options: ["Kişi A","Kişi B","Kişi C","Kişi D"], correctIndex: 0 },
+  { id: 1, image: p1, options: ["BUGRA","EGE","EREN","KUBILAY"], correctIndex: 0 },
+  { id: 2, image: p2, options: ["EREN","EGE","EMIR","BURHAN"], correctIndex: 3 },
+  { id: 3, image: p3, options: ["BUGRA","EFE","EGE","SAFAK"], correctIndex: 1 },
+  { id: 4, image: p4, options: ["BUGRA","EMIR","BURHAN","EGE"], correctIndex: 3 },
+  { id: 5, image: p5, options: ["EREN","BURHAN","EMIR","KUBILAY"], correctIndex: 2 },
+  { id: 6, image: p6, options: ["SENA","NIL","TUGBA","GULBUKE"], correctIndex: 1 },
+  { id: 7, image: p7, options: ["GULTEKIN","EFE","EREN","BURHAN"], correctIndex: 0 },
+  { id: 8, image: p8, options: ["BUGRA","KUBILAY","EFE","SAFAK"], correctIndex: 3 },
+  { id: 9, image: p9, options: ["KUBILAY","SAFAK","EREN","EMIR"], correctIndex: 0 },
+  { id: 10, image: p10, options: ["BURHAN","GULTEKIN","EREN","EMIR"], correctIndex: 2 },
 ];
 
 const SCORE_MESSAGES = {
@@ -37,6 +36,7 @@ const SCORE_MESSAGES = {
   7: "FLEXLERDE TOPA GANK ATMAK KADAR AKILLICA SEÇİMLER YAPMIŞSIN.",
   8: "İSMAİL KARTAL SEVİYESİNE YAKIN BİR KİŞİLİKSİN.",
   9: "ORDERLARDA %100 WIN ALAN AUCHERA GİBİ HARİKASIN.",
+  10: "KONGURATURLATONİS. HEPSİNİ BİLDİN DALYARAK :D",
 };
 
 export default function App() {
@@ -46,22 +46,33 @@ export default function App() {
 
   const total = QUESTIONS.length;
   const answeredCount = Object.keys(answers).length;
+
   const correctCount = useMemo(
     () => QUESTIONS.filter(q => answers[q.id] === q.correctIndex).length,
     [answers]
   );
+
   const allDone = answeredCount === total;
 
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   const handlePick = (qId, idx, index) => {
-    setAnswers(prev => {
-      if (prev[qId] !== undefined) return prev;
-      return { ...prev, [qId]: idx };
-    });
+    if (answers[qId] !== undefined) return;
 
     const q = QUESTIONS[index];
     const isWrong = idx !== q.correctIndex;
-    const isLastQuestion = index === total - 1;
-    if (isWrong && !isLastQuestion) {
+    const willFinishQuiz = answeredCount === total - 1;
+
+    setAnswers(prev => ({ ...prev, [qId]: idx }));
+
+    if (willFinishQuiz) {
+      setShowWrongPopup(false);
+    } else if (isWrong) {
       setShowWrongPopup(true);
     }
 
@@ -79,7 +90,7 @@ export default function App() {
       "h-20 rounded-2xl border border-slate-900 text-slate-900 font-semibold flex items-center justify-center transition-all duration-300";
 
     if (!answered)
-      return base + " bg-white hover:bg-zinc-900 hover:text-white hover:border-slate-900";
+      return base + " bg-white hover:bg-zinc-700 hover:text-white hover:border-slate-900";
 
     if (idx === q.correctIndex) return base + " bg-emerald-200";
     if (idx === picked) return base + " bg-rose-200";
@@ -88,20 +99,17 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-screen overflow-x-hidden">
-      {/* NET BACKGROUND (blur YOK) */}
       <div
         className="fixed inset-0 bg-cover bg-center scale-110"
         style={{ backgroundImage: `url(${bg})` }}
       />
-      {/* Koyu overlay */}
       <div className="fixed inset-0 bg-black/60" />
 
-      {/* CONTENT */}
       <div className="relative z-10">
         <div className="w-screen flex justify-center px-4 py-10">
           <div className="w-full max-w-5xl">
             <h1 className="text-center text-4xl md:text-5xl font-extrabold mb-16 text-white">
-              AİLE 3 REBORN QUIZ
+              AİLE 3 REBORN QUIZ :D
             </h1>
 
             {QUESTIONS.map((q, i) => (
@@ -111,14 +119,14 @@ export default function App() {
                 className="mb-20 backdrop-blur-sm rounded-3xl p-6 md:p-8"
               >
                 <h2 className="text-center text-3xl md:text-4xl font-extrabold mb-8 text-white">
-                  BU KİŞİ KİMDİR?
+                  BU KİŞİ KİMDİR? :D
                 </h2>
 
                 <div className="flex justify-center mb-10">
                   <img
                     src={q.image}
                     alt=""
-                    className="max-h-[420px] max-w-full rounded-2xl border object-contain transition-transform duration-300 hover:scale-[1.03]"
+                    className="max-h-[420px] max-w-full rounded-2xl z-40 border border-black ct-contain transition-transform duration-300 hover:scale-[1.30]"
                   />
                 </div>
 
@@ -139,8 +147,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* WRONG ANSWER POPUP (son soruda açılmaz) */}
-        {showWrongPopup && (
+        {showWrongPopup && !allDone && (
           <div
             className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center cursor-pointer"
             onClick={() => setShowWrongPopup(false)}
@@ -151,11 +158,16 @@ export default function App() {
           </div>
         )}
 
-        {/* SCORE POPUP */}
         {allDone && (
           <div
             className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center cursor-pointer"
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              if ("scrollRestoration" in window.history) {
+                window.history.scrollRestoration = "manual";
+              }
+              window.scrollTo(0, 0);
+              window.location.reload();
+            }}
           >
             <div className="text-white text-center px-6">
               <div className="text-5xl md:text-7xl font-extrabold mb-6">
@@ -165,7 +177,7 @@ export default function App() {
                 {SCORE_MESSAGES[correctCount]}
               </div>
               <div className="mt-8 text-sm opacity-70">
-                herhangi bir yere bas :D
+                herhangi bir yere bas :D 
               </div>
             </div>
           </div>
